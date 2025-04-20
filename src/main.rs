@@ -12,16 +12,16 @@
 // and other measurments in Rust, look at the measurements crate (https://docs.rs/measurements/latest/measurements/#).
 //
 // Celsius to:
-//   Fahrenheit - degreesF = degreesC * 1.8 + 32.0
-//   kelvin - degreesK = degreesC + 273.15
+//   Fahrenheit: degreesF = degreesC * 1.8 + 32.0
+//   kelvin: K = degreesC + 273.15
 //
 // Fahrenheit to:
-//   Celsius - degreesC = (degreesF - 32.0) / 1.8
-//   kelvin - degreesK = (degreesF - 32.0) / 1.8 + 273.15
+//   Celsius: degreesC = (degreesF - 32.0) / 1.8
+//   kelvin: K = (degreesF - 32.0) / 1.8 + 273.15
 //
 // kelvin to:
-//   Celsius - degreesC = degreesK - 273.15
-//   Fahrenheit - degreesF = (degreesK - 273.15) * 1.8 + 32.0
+//   Celsius - degreesC = K - 273.15
+//   Fahrenheit - degreesF = (K - 273.15) * 1.8 + 32.0
 
 // temperature = Temp(temperature, units = "C")
 // temperature_fahrenheit = temperature.to_fahrenheit()
