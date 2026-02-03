@@ -75,6 +75,21 @@ pub struct Temperature {
     pub unit: TemperatureUnit,
 }
 
+pub const ABSOLUTE_ZERO: Temperature = Temperature {
+    value: 0.0,
+    unit: TemperatureUnit::Kelvin,
+};
+
+pub const BOILING_POINT: Temperature = Temperature {
+    value: 100.0,
+    unit: TemperatureUnit::Celsius,
+};
+
+pub const FREEZING_POINT: Temperature = Temperature {
+    value: 0.0,
+    unit: TemperatureUnit::Celsius,
+};
+
 impl fmt::Display for Temperature {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.unit {
@@ -110,7 +125,7 @@ impl Temperature {
                             unit: self.unit,
                         },
                     TemperatureUnit::Fahrenheit => {
-                        let _temperature = self.value * 1.8 + 32.0;
+                        let _temperature = self.value * 9.0 / 5.0 + 32.0;
                         let _t = Temperature {
                             value: _temperature,
                             unit: TemperatureUnit::Fahrenheit,
@@ -130,10 +145,10 @@ impl Temperature {
             TemperatureUnit::Fahrenheit => {
                 match unit {
                     TemperatureUnit::Celsius => {
-                        let _temperature = (self.value * 5.0 / 9.0 ) + 32.0;
+                        let _temperature = (self.value - 32.0 ) * 5.0 /9.0;
                         let _t = Temperature {
                             value: _temperature,
-                            unit: TemperatureUnit::Fahrenheit,
+                            unit: TemperatureUnit::Celsius,
                         };
                         _t
                     },
@@ -168,5 +183,99 @@ impl Temperature {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Temperature, TemperatureUnit, ABSOLUTE_ZERO, BOILING_POINT, FREEZING_POINT};
+
+    fn assert_close(actual: f64, expected: f64, epsilon: f64) {
+        assert!(
+            (actual - expected).abs() <= epsilon,
+            "expected {expected}, got {actual} (epsilon {epsilon})"
+        );
+    }
+
+    #[test]
+    fn celsius_to_fahrenheit_basic() {
+        let temp_c = Temperature::new(100.0, TemperatureUnit::Celsius).expect("valid");
+        let temp_f = temp_c.to(TemperatureUnit::Fahrenheit);
+        assert_close(temp_f.value, 212.0, 1e-9);
+        assert!(matches!(temp_f.unit, TemperatureUnit::Fahrenheit));
+    }
+
+    #[test]
+    fn fahrenheit_to_celsius_basic() {
+        let temp_f = Temperature::new(32.0, TemperatureUnit::Fahrenheit).expect("valid");
+        let temp_c = temp_f.to(TemperatureUnit::Celsius);
+        assert_close(temp_c.value, 0.0, 1e-9);
+        assert!(matches!(temp_c.unit, TemperatureUnit::Celsius));
+    }
+
+    #[test]
+    fn celsius_to_kelvin_basic() {
+        let temp_c = Temperature::new(0.0, TemperatureUnit::Celsius).expect("valid");
+        let temp_k = temp_c.to(TemperatureUnit::Kelvin);
+        assert_close(temp_k.value, 273.15, 1e-9);
+        assert!(matches!(temp_k.unit, TemperatureUnit::Kelvin));
+    }
+
+    #[test]
+    fn kelvin_to_celsius_basic() {
+        let temp_k = Temperature::new(273.15, TemperatureUnit::Kelvin).expect("valid");
+        let temp_c = temp_k.to(TemperatureUnit::Celsius);
+        assert_close(temp_c.value, 0.0, 1e-9);
+        assert!(matches!(temp_c.unit, TemperatureUnit::Celsius));
+    }
+
+    #[test]
+    fn absolute_zero_celsius_is_valid() {
+        let temp_c = Temperature::new(-273.15, TemperatureUnit::Celsius).expect("valid");
+        let temp_k = temp_c.to(TemperatureUnit::Kelvin);
+        assert_close(temp_k.value, 0.0, 1e-9);
+    }
+
+    #[test]
+    fn below_absolute_zero_rejected() {
+        let temp_c = Temperature::new(-273.151, TemperatureUnit::Celsius);
+        assert!(temp_c.is_err());
+    }
+
+    #[test]
+    fn absolute_zero_fahrenheit_is_valid() {
+        let temp_f = Temperature::new(-459.67, TemperatureUnit::Fahrenheit).expect("valid");
+        let temp_k = temp_f.to(TemperatureUnit::Kelvin);
+        assert_close(temp_k.value, 0.0, 1e-2);
+    }
+
+    #[test]
+    fn display_formats_celsius_with_degree_symbol() {
+        let temp_c = Temperature::new(25.0, TemperatureUnit::Celsius).expect("valid");
+        assert_eq!(format!("{temp_c}"), "25\u{00B0}C");
+    }
+
+    #[test]
+    fn display_formats_fahrenheit_with_degree_symbol() {
+        let temp_f = Temperature::new(77.0, TemperatureUnit::Fahrenheit).expect("valid");
+        assert_eq!(format!("{temp_f}"), "77\u{00B0}F");
+    }
+
+    #[test]
+    fn display_formats_kelvin_without_degree_symbol() {
+        let temp_k = Temperature::new(300.0, TemperatureUnit::Kelvin).expect("valid");
+        assert_eq!(format!("{temp_k}"), "300K");
+    }
+
+    #[test]
+    fn constants_match_expected_values() {
+        assert_close(ABSOLUTE_ZERO.value, 0.0, 1e-12);
+        assert!(matches!(ABSOLUTE_ZERO.unit, TemperatureUnit::Kelvin));
+
+        assert_close(BOILING_POINT.value, 100.0, 1e-12);
+        assert!(matches!(BOILING_POINT.unit, TemperatureUnit::Celsius));
+
+        assert_close(FREEZING_POINT.value, 0.0, 1e-12);
+        assert!(matches!(FREEZING_POINT.unit, TemperatureUnit::Celsius));
     }
 }
