@@ -32,24 +32,51 @@
 // temp_fahrenheit = to_fahrenheit(temp_celsius)
 // converted_temp = convert_temp(temp) temp: 37.5C or 99.5F
 
+use std::env;
 use crate::temperature::Temperature;
 use crate::temperature::TemperatureUnit;
+use crate::temperature::{ABSOLUTE_ZERO, BOILING_POINT, FREEZING_POINT};
+
+use sys_locale::get_locale;
 
 pub mod temperature;
 
 fn main() {
 
-    //let absolute_zero_kelvin = Temperature::new(0.0, TemperatureUnit::Kelvin);
-    let _absolute_zero_kelvin= Temperature::new(0.0, TemperatureUnit::Kelvin)
-    .expect("Too small");
+    let args: Vec<String> = env::args().collect();
+    dbg!(args);
 
-    let boiling_point_celsius = Temperature::new(100.0, TemperatureUnit::Celsius)
-    .expect("Too small");
+    let locale = get_locale().unwrap_or_else(|| String::from("en-US"));
+
+    println!("The current locale is {}", locale);
+
+    //let absolute_zero_kelvin = Temperature::new(0.0, TemperatureUnit::Kelvin);
+    let _absolute_zero_kelvin = match Temperature::new(ABSOLUTE_ZERO.value, ABSOLUTE_ZERO.unit) {
+        Ok(temp) => temp,
+        Err(err) => {
+            eprintln!("Invalid temperature: {err}");
+            return;
+        }
+    };
+
+    let boiling_point_celsius = match Temperature::new(BOILING_POINT.value, BOILING_POINT.unit) {
+        Ok(temp) => temp,
+        Err(err) => {
+            eprintln!("Invalid temperature: {err}");
+            return;
+        }
+    };
 
     let boiling_point_fahrenheit= boiling_point_celsius.to(TemperatureUnit::Fahrenheit);
     println!("The boiling point of water at sea level is {boiling_point_celsius} or {boiling_point_fahrenheit}");
 
-    let freezing_point_celsius = Temperature::new(-300.0, TemperatureUnit::Celsius).expect("Too small");
+    let freezing_point_celsius = match Temperature::new(FREEZING_POINT.value, FREEZING_POINT.unit) {
+        Ok(temp) => temp,
+        Err(err) => {
+            eprintln!("Invalid temperature: {err}");
+            return;
+        }
+    };
 
     let freezing_point_fahrenheit = freezing_point_celsius.to(TemperatureUnit::Fahrenheit);
     let freezing_point_kelvin = freezing_point_celsius.to(TemperatureUnit::Kelvin);
