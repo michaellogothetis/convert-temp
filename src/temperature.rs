@@ -33,8 +33,9 @@
 // converted_temp = convert_temp(temp) temp: 37.5C or 99.5F
 
 use std::fmt;
+use std::str::FromStr;
 
-#[derive(PartialEq, Eq, Clone, Copy)] 
+#[derive(Debug, PartialEq, Eq, Clone, Copy)] 
 pub enum TemperatureUnit {
     Celsius,
     Fahrenheit,
@@ -70,6 +71,32 @@ impl fmt::Display for InvalidTemperature {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TemperatureParseError {
+    Empty,
+    MissingUnit,
+    InvalidUnit(char),
+    InvalidNumber,
+    BelowAbsoluteZero,
+}
+
+impl fmt::Display for TemperatureParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            TemperatureParseError::Empty => write!(f, "Empty temperature string"),
+            TemperatureParseError::MissingUnit => write!(f, "Missing temperature unit"),
+            TemperatureParseError::InvalidUnit(unit) => {
+                write!(f, "Invalid temperature unit '{unit}'")
+            }
+            TemperatureParseError::InvalidNumber => write!(f, "Invalid temperature number"),
+            TemperatureParseError::BelowAbsoluteZero => {
+                write!(f, "Temperature less than 0.0k")
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
 pub struct Temperature {
     pub value: f64,
     pub unit: TemperatureUnit,
@@ -114,6 +141,41 @@ impl Temperature {
         else {
             Ok(temp)
         }
+    }
+
+    pub fn from_str(input: &str) -> std::result::Result<Temperature, TemperatureParseError> {
+        let trimmed = input.trim();
+        if trimmed.is_empty() {
+            return Err(TemperatureParseError::Empty);
+        }
+
+        if trimmed.len() < 2 {
+            return Err(TemperatureParseError::MissingUnit);
+        }
+
+        let (value_part, unit_part) = trimmed.split_at(trimmed.len() - 1);
+        let unit_char = unit_part
+            .chars()
+            .next()
+            .ok_or(TemperatureParseError::MissingUnit)?;
+
+        let unit = match unit_char {
+            'C' => TemperatureUnit::Celsius,
+            'F' => TemperatureUnit::Fahrenheit,
+            'K' => TemperatureUnit::Kelvin,
+            _ => return Err(TemperatureParseError::InvalidUnit(unit_char)),
+        };
+
+        let value_str = value_part.trim();
+        if value_str.is_empty() {
+            return Err(TemperatureParseError::InvalidNumber);
+        }
+
+        let value: f64 = value_str
+            .parse()
+            .map_err(|_| TemperatureParseError::InvalidNumber)?;
+
+        Temperature::new(value, unit).map_err(|_| TemperatureParseError::BelowAbsoluteZero)
     }
     pub fn to(&self, unit: TemperatureUnit) -> Temperature {
         match self.unit {
@@ -186,9 +248,24 @@ impl Temperature {
     }
 }
 
+impl FromStr for Temperature {
+    type Err = TemperatureParseError;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        Temperature::from_str(s)
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{Temperature, TemperatureUnit, ABSOLUTE_ZERO, BOILING_POINT, FREEZING_POINT};
+    use super::{
+        Temperature,
+        TemperatureParseError,
+        TemperatureUnit,
+        ABSOLUTE_ZERO,
+        BOILING_POINT,
+        FREEZING_POINT,
+    };
 
     fn assert_close(actual: f64, expected: f64, epsilon: f64) {
         assert!(
@@ -277,5 +354,45 @@ mod tests {
 
         assert_close(FREEZING_POINT.value, 0.0, 1e-12);
         assert!(matches!(FREEZING_POINT.unit, TemperatureUnit::Celsius));
+    }
+
+    #[test]
+    fn parse_temperature_from_string() {
+        let temp = Temperature::from_str("37.5C").expect("valid");
+        assert_close(temp.value, 37.5, 1e-12);
+        assert!(matches!(temp.unit, TemperatureUnit::Celsius));
+
+        let temp = Temperature::from_str("32F").expect("valid");
+        assert_close(temp.value, 32.0, 1e-12);
+        assert!(matches!(temp.unit, TemperatureUnit::Fahrenheit));
+
+        let temp = Temperature::from_str(" 273.15K ").expect("valid");
+        assert_close(temp.value, 273.15, 1e-12);
+        assert!(matches!(temp.unit, TemperatureUnit::Kelvin));
+    }
+
+    #[test]
+    fn parse_temperature_rejects_invalid_unit() {
+        let err = Temperature::from_str("10X").unwrap_err();
+        assert!(matches!(err, TemperatureParseError::InvalidUnit('X')));
+    }
+
+    #[test]
+    fn parse_temperature_rejects_invalid_number() {
+        let err = Temperature::from_str("abcC").unwrap_err();
+        assert!(matches!(err, TemperatureParseError::InvalidNumber));
+    }
+
+    #[test]
+    fn parse_temperature_rejects_below_absolute_zero() {
+        let err = Temperature::from_str("-300C").unwrap_err();
+        assert!(matches!(err, TemperatureParseError::BelowAbsoluteZero));
+    }
+
+    #[test]
+    fn parse_temperature_via_fromstr_trait() {
+        let temp: Temperature = "451F".parse().expect("valid");
+        assert_close(temp.value, 451.0, 1e-12);
+        assert!(matches!(temp.unit, TemperatureUnit::Fahrenheit));
     }
 }
