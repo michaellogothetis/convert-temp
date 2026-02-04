@@ -44,11 +44,66 @@ pub mod temperature;
 fn main() {
 
     let args: Vec<String> = env::args().collect();
-    dbg!(args);
+    if args.len() == 2 && (args[1] == "-h" || args[1] == "--help") {
+        println!("Usage: {} <value> <from_unit> <to_unit>", args[0]);
+        println!("Units: C, F, K");
+        return;
+    }
+
+    if args.len() == 2 && (args[1] == "-V" || args[1] == "--version") {
+        println!("{} {}", args[0], env!("CARGO_PKG_VERSION"));
+        return;
+    }
+
+    if args.len() != 4 {
+        eprintln!("Usage: {} <value> <from_unit> <to_unit>", args[0]);
+        eprintln!("Units: C, F, K");
+        return;
+    }
 
     let locale = get_locale().unwrap_or_else(|| String::from("en-US"));
-
     println!("The current locale is {}", locale);
+
+    let from_value: f64 = match args[1].parse() {
+        Ok(value) => value,
+        Err(_) => {
+            eprintln!("Invalid temperature value: {}", args[1]);
+            return;
+        }
+    };
+
+    let from_unit = match args[2].as_str() {
+        "C" => TemperatureUnit::Celsius,
+        "F" => TemperatureUnit::Fahrenheit,
+        "K" => TemperatureUnit::Kelvin,
+        _ => {
+            eprintln!("Invalid from unit: {}", args[2]);
+            eprintln!("Units: C, F, K");
+            return;
+        }
+    };
+
+    let to_unit = match args[3].as_str() {
+        "C" => TemperatureUnit::Celsius,
+        "F" => TemperatureUnit::Fahrenheit,
+        "K" => TemperatureUnit::Kelvin,
+        _ => {
+            eprintln!("Invalid to unit: {}", args[3]);
+            eprintln!("Units: C, F, K");
+            return;
+        }
+    };
+
+    let from_temp = match Temperature::new(from_value, from_unit) {
+        Ok(temp) => temp,
+        Err(err) => {
+            eprintln!("Invalid temperature: {err}");
+            return;
+        }
+    };
+
+    let to_temp = from_temp.to(to_unit);
+    println!("{from_temp} = {to_temp}");
 
     //let absolute_zero_kelvin = Temperature::new(0.0, TemperatureUnit::Kelvin);
     let _absolute_zero_kelvin = match Temperature::new(ABSOLUTE_ZERO.value, ABSOLUTE_ZERO.unit) {
@@ -67,7 +122,7 @@ fn main() {
         }
     };
 
-    let boiling_point_fahrenheit= boiling_point_celsius.to(TemperatureUnit::Fahrenheit);
+    let boiling_point_fahrenheit = boiling_point_celsius.to(TemperatureUnit::Fahrenheit);
     println!("The boiling point of water at sea level is {boiling_point_celsius} or {boiling_point_fahrenheit}");
 
     let freezing_point_celsius = match Temperature::new(FREEZING_POINT.value, FREEZING_POINT.unit) {
