@@ -1,3 +1,5 @@
+[![convert-temp CI](https://github.com/michaellogothetis/convert-temp/actions/workflows/rust.yml/badge.svg)](https://github.com/michaellogothetis/convert-temp/actions/workflows/rust.yml)
+
 # convert-temp
 
 ## Convert temperatures between different temperature scales
