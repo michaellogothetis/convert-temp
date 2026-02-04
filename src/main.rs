@@ -28,7 +28,7 @@
 // A program to convert between degrees Celsius and degrees Fahrenheit
 //
 // Author: Michael Logothetis
-// Date: 06-Sep-2022
+// Date: 05-Feb-2026
 //
 // Let's expand this handle temperature conversion more generally.
 //
@@ -59,7 +59,7 @@
 use std::env;
 use crate::temperature::Temperature;
 use crate::temperature::TemperatureUnit;
-use crate::temperature::{ABSOLUTE_ZERO, BOILING_POINT, FREEZING_POINT};
+// use crate::temperature::{ABSOLUTE_ZERO, BOILING_POINT, FREEZING_POINT};
 
 use sys_locale::get_locale;
 
@@ -136,40 +136,6 @@ fn main() {
 
     let to_temp = from_temp.to(to_unit);
     println!("{from_temp} = {to_temp}");
-
-    //let absolute_zero_kelvin = Temperature::new(0.0, TemperatureUnit::Kelvin);
-    let _absolute_zero_kelvin = match Temperature::new(ABSOLUTE_ZERO.value, ABSOLUTE_ZERO.unit) {
-        Ok(temp) => temp,
-        Err(err) => {
-            eprintln!("Invalid temperature: {err}");
-            return;
-        }
-    };
-
-    let boiling_point_celsius = match Temperature::new(BOILING_POINT.value, BOILING_POINT.unit) {
-        Ok(temp) => temp,
-        Err(err) => {
-            eprintln!("Invalid temperature: {err}");
-            return;
-        }
-    };
-
-    let boiling_point_fahrenheit = boiling_point_celsius.to(TemperatureUnit::Fahrenheit);
-    println!("The boiling point of water at sea level is {boiling_point_celsius} or {boiling_point_fahrenheit}");
-
-    let freezing_point_celsius = match Temperature::new(FREEZING_POINT.value, FREEZING_POINT.unit) {
-        Ok(temp) => temp,
-        Err(err) => {
-            eprintln!("Invalid temperature: {err}");
-            return;
-        }
-    };
-
-    let freezing_point_fahrenheit = freezing_point_celsius.to(TemperatureUnit::Fahrenheit);
-    let freezing_point_kelvin = freezing_point_celsius.to(TemperatureUnit::Kelvin);
-
-    println!("The temperature at which water freezes can be expressed as {freezing_point_celsius}, {freezing_point_fahrenheit} or {freezing_point_kelvin}");
-
 }
 
 // Get the default temperature unit for a given locale. For simplicity, we only
