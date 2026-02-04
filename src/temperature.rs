@@ -1,3 +1,16 @@
+//! Temperature conversion types and helpers.
+//!
+//! Provides a `Temperature` struct, conversion between `C`, `F`, and `K`,
+//! common constants, parsing from strings, and display formatting.
+//!
+//! # Examples
+//! ```rust
+//! use convert_temp::temperature::{Temperature, TemperatureUnit};
+//!
+//! let t = Temperature::new(100.0, TemperatureUnit::Celsius).unwrap();
+//! let f = t.to(TemperatureUnit::Fahrenheit);
+//! assert_eq!(format!("{f}"), "212\u{00B0}F");
+//! ```
 // Exercises from 'The Rust Programming Language'
 // https://doc.rust-lang.org/book/ch03-05-control-flow.html#summary
 //
@@ -35,6 +48,7 @@
 use std::fmt;
 use std::str::FromStr;
 
+/// Temperature units.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)] 
 pub enum TemperatureUnit {
     Celsius,
@@ -43,6 +57,7 @@ pub enum TemperatureUnit {
 }
 
 impl TemperatureUnit {
+    /// Returns the long-form name of the unit.
     fn description(&self) -> &str {
         match *self {
             TemperatureUnit::Celsius => "Celsius",
@@ -51,6 +66,7 @@ impl TemperatureUnit {
         }
     }
 
+    /// Returns the one-letter abbreviation for the unit.
     fn abbreviation(&self) -> &str {
         match *self {
             TemperatureUnit::Celsius => "C",
@@ -60,8 +76,10 @@ impl TemperatureUnit {
     }
 }
 
+/// Result alias for temperature creation failures.
 pub type Result<T> = std::result::Result<T, InvalidTemperature>;
 
+/// Error returned when a temperature is below absolute zero.
 #[derive(Debug, Clone)]
 pub struct InvalidTemperature;
 
@@ -71,6 +89,7 @@ impl fmt::Display for InvalidTemperature {
     }
 }
 
+/// Errors that can occur when parsing a temperature from a string.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TemperatureParseError {
     Empty,
@@ -96,22 +115,26 @@ impl fmt::Display for TemperatureParseError {
     }
 }
 
+/// A temperature value paired with its unit.
 #[derive(Debug, Clone, Copy)]
 pub struct Temperature {
     pub value: f64,
     pub unit: TemperatureUnit,
 }
 
+/// Absolute zero in Kelvin.
 pub const ABSOLUTE_ZERO: Temperature = Temperature {
     value: 0.0,
     unit: TemperatureUnit::Kelvin,
 };
 
+/// Boiling point of water at sea level in Celsius.
 pub const BOILING_POINT: Temperature = Temperature {
     value: 100.0,
     unit: TemperatureUnit::Celsius,
 };
 
+/// Freezing point of water in Celsius.
 pub const FREEZING_POINT: Temperature = Temperature {
     value: 0.0,
     unit: TemperatureUnit::Celsius,
@@ -133,6 +156,7 @@ impl fmt::Display for Temperature {
 }
 
 impl Temperature {
+    /// Creates a new temperature, rejecting values below absolute zero.
     pub fn new(value: f64, unit: TemperatureUnit) -> Result<Temperature> {
         let temp = Temperature { value, unit };
         if temp.to(TemperatureUnit::Kelvin).value < 0.0 {
@@ -143,6 +167,7 @@ impl Temperature {
         }
     }
 
+    /// Parses a temperature from a string like `\"37.5C\"`, `\"32F\"`, or `\"273.15K\"`.
     pub fn from_str(input: &str) -> std::result::Result<Temperature, TemperatureParseError> {
         let trimmed = input.trim();
         if trimmed.is_empty() {
@@ -177,6 +202,7 @@ impl Temperature {
 
         Temperature::new(value, unit).map_err(|_| TemperatureParseError::BelowAbsoluteZero)
     }
+    /// Converts this temperature to the requested unit.
     pub fn to(&self, unit: TemperatureUnit) -> Temperature {
         match self.unit {
             TemperatureUnit::Celsius => {
@@ -248,6 +274,7 @@ impl Temperature {
     }
 }
 
+/// Parses a temperature using the standard `FromStr` trait.
 impl FromStr for Temperature {
     type Err = TemperatureParseError;
 

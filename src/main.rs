@@ -1,3 +1,25 @@
+//! `convert-temp` command-line tool.
+//!
+//! Convert temperatures between Celsius, Fahrenheit, and Kelvin.
+//!
+//! # Usage
+//! ```text
+//! convert-temp <value> <from_unit> <to_unit>
+//! ```
+//!
+//! Units are `C`, `F`, or `K`.
+//!
+//! # Examples
+//! ```text
+//! convert-temp 37.5 C F
+//! convert-temp 273.15 K C
+//! ```
+//!
+//! # Flags
+//! - `-h`, `--help` show usage
+//! - `-V`, `--version` show version
+//!
+//! This tool is a learning exercise; see `temperature` module for the core API.
 // Exercises from 'The Rust Programming Language'
 // https://doc.rust-lang.org/book/ch03-05-control-flow.html#summary
 //
