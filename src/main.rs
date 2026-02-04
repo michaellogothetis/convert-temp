@@ -5,6 +5,7 @@
 //! # Usage
 //! ```text
 //! convert-temp <value> <from_unit> <to_unit>
+//! convert-temp <value> <from_unit>
 //! ```
 //!
 //! Units are `C`, `F`, or `K`.
@@ -12,6 +13,7 @@
 //! # Examples
 //! ```text
 //! convert-temp 37.5 C F
+//! convert-temp 100 C
 //! convert-temp 273.15 K C
 //! ```
 //!
@@ -77,14 +79,18 @@ fn main() {
         return;
     }
 
-    if args.len() != 4 {
+    if args.len() != 3 && args.len() != 4 {
         eprintln!("Usage: {} <value> <from_unit> <to_unit>", args[0]);
+        eprintln!("       {} <value> <from_unit>", args[0]);
         eprintln!("Units: C, F, K");
         return;
     }
 
-    let locale = get_locale().unwrap_or_else(|| String::from("en-US"));
-    println!("The current locale is {}", locale);
+    let locale = get_locale().unwrap_or_else(|| String::from("en-AU"));
+    #[cfg(debug_assertions)]
+    {
+        println!("The current locale is {}", locale);
+    }
 
     let from_value: f64 = match args[1].parse() {
         Ok(value) => value,
@@ -105,15 +111,19 @@ fn main() {
         }
     };
 
-    let to_unit = match args[3].as_str() {
-        "C" => TemperatureUnit::Celsius,
-        "F" => TemperatureUnit::Fahrenheit,
-        "K" => TemperatureUnit::Kelvin,
-        _ => {
-            eprintln!("Invalid to unit: {}", args[3]);
-            eprintln!("Units: C, F, K");
-            return;
+    let to_unit = if args.len() == 4 {
+        match args[3].as_str() {
+            "C" => TemperatureUnit::Celsius,
+            "F" => TemperatureUnit::Fahrenheit,
+            "K" => TemperatureUnit::Kelvin,
+            _ => {
+                eprintln!("Invalid to unit: {}", args[3]);
+                eprintln!("Units: C, F, K");
+                return;
+            }
         }
+    } else {
+        locale_default_unit(&locale)
     };
 
     let from_temp = match Temperature::new(from_value, from_unit) {
@@ -160,4 +170,70 @@ fn main() {
 
     println!("The temperature at which water freezes can be expressed as {freezing_point_celsius}, {freezing_point_fahrenheit} or {freezing_point_kelvin}");
 
+}
+
+// Get the default temperature unit for a given locale. For simplicity, we only
+// check for US, Iberia and Myanmar as locales that use Fahrenheit; all others default to Celsius.
+fn locale_default_unit(locale: &str) -> TemperatureUnit {
+    let locale_lower = locale.to_ascii_lowercase();
+    if locale_lower.starts_with("en-us")
+        || locale_lower.starts_with("en_us")
+        || locale_lower.starts_with("en-lr")
+        || locale_lower.starts_with("en_lr")
+        || locale_lower.starts_with("my-mm")
+        || locale_lower.starts_with("my_mm")
+    {
+        TemperatureUnit::Fahrenheit
+    } else {
+        TemperatureUnit::Celsius
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{locale_default_unit, TemperatureUnit};
+
+    #[test]
+    fn locale_defaults_to_fahrenheit_for_us_liberia_myanmar() {
+        assert!(matches!(
+            locale_default_unit("en-US"),
+            TemperatureUnit::Fahrenheit
+        ));
+        assert!(matches!(
+            locale_default_unit("en_US"),
+            TemperatureUnit::Fahrenheit
+        ));
+        assert!(matches!(
+            locale_default_unit("en-LR"),
+            TemperatureUnit::Fahrenheit
+        ));
+        assert!(matches!(
+            locale_default_unit("en_LR"),
+            TemperatureUnit::Fahrenheit
+        ));
+        assert!(matches!(
+            locale_default_unit("my-MM"),
+            TemperatureUnit::Fahrenheit
+        ));
+        assert!(matches!(
+            locale_default_unit("my_MM"),
+            TemperatureUnit::Fahrenheit
+        ));
+    }
+
+    #[test]
+    fn locale_defaults_to_celsius_for_other_locales() {
+        assert!(matches!(
+            locale_default_unit("en-GB"),
+            TemperatureUnit::Celsius
+        ));
+        assert!(matches!(
+            locale_default_unit("fr-FR"),
+            TemperatureUnit::Celsius
+        ));
+        assert!(matches!(
+            locale_default_unit("ja-JP"),
+            TemperatureUnit::Celsius
+        ));
+    }
 }

@@ -58,6 +58,7 @@ pub enum TemperatureUnit {
 
 impl TemperatureUnit {
     /// Returns the long-form name of the unit.
+    #[allow(dead_code)]
     fn description(&self) -> &str {
         match *self {
             TemperatureUnit::Celsius => "Celsius",
