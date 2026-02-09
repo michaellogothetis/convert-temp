@@ -8,6 +8,8 @@
 
 This was a learning exercise. If you need a way to handle temperature and other measurments in Rust, look at the measurements crate (https://docs.rs/measurements/latest/measurements/#).
 
+Read the [documentation](https://michaellogothetis.github.io/convert-temp/).
+
 ### Features
 
 A command-line tool and Rust crate for converting temperatures.
