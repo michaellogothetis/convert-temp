@@ -19,9 +19,9 @@ jobs:
       - name: Build documentation
         run: cargo doc
       - name: Redirect index.html
-        run: echo '<meta http-equiv="refresh" content="0; url=./convert_temp/index.html">' > target/doc/index.html
+        run: echo '<meta http-equiv="refresh" content="0; url=./convert_temp/index.html">' > target/doc/convert_temp/index.html
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
