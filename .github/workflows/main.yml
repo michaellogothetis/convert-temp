@@ -1,7 +1,7 @@
 name: Deploy rustdoc to GitHub Pages
 
 on:
-  workflow_dispatch: 
+  workflow_dispatch:
   push:
     branches:
       - main # Trigger on pushes to the main branch
@@ -17,13 +17,14 @@ jobs:
           profile: minimal
           override: true
       - name: Build documentation
-        run: cargo doc
+        run: cargo doc --no-deps
       - name: Redirect index.html
-        run: echo '<meta http-equiv="refresh" content="0; url=./convert_temp/index.html">' > target/doc/convert_temp/index.html
+        run: echo '<meta http-equiv="refresh" content="0; url=./convert_temp/index.html">' > target/doc/index.html
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: target/doc
           publish_branch: gh-pages
           # Overwriting the branch history on each push saves repository size
           force_orphan: true
