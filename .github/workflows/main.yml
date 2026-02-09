@@ -1,6 +1,7 @@
 name: Deploy rustdoc to GitHub Pages
 
 on:
+  workflow_dispatch: 
   push:
     branches:
       - main # Trigger on pushes to the main branch
