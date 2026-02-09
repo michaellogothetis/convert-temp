@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["locale_default_unit","main"],"mod":["temperature"]};

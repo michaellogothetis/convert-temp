@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["ABSOLUTE_ZERO","BOILING_POINT","FREEZING_POINT"],"enum":["TemperatureParseError","TemperatureUnit"],"struct":["InvalidTemperature","Temperature"],"type":["Result"]};
